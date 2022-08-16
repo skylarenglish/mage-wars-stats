@@ -3,19 +3,22 @@ from math import ceil, floor
 from copy import deepcopy
 
 mage_wars_die = [(0,0), (0,0), (1,0), (2,0), (0,1), (0,2)]
+incorporeal_die = [(0,0),(0,0),(1,0),(0,0),(0,1),(0,0)]
 skylar_die = [(0,0),(1,0),(1,0),(2,0),(0,1),(0,1)]
 
 
 	
-#print(simulate(5, 3, 1))
-# defense, doublestrike, incorporeal, burn, rot,
+# doublestrike, burn, rot,
 class Creature():
-	def __init__(self, armor, health, attack_dice, piercing, defense=None):
+	def __init__(self, armor=0, health=1, attack_dice=1, piercing=0, defense=None, *args, **kwargs):
 		self.armor = armor
 		self.health = health
 		self.attack_dice = attack_dice
 		self.piercing = piercing
 		self.defense = defense
+		for key, value in kwargs.items():
+			setattr(self, key, value) 
+
 
 	def attack(self, attacker, defender):
 		normal, crit = (0,0)
@@ -23,7 +26,10 @@ class Creature():
 			return 0
 		else :
 			for _ in range(attacker.attack_dice):
-				normal_add, crit_add = choice(mage_wars_die)
+				if getattr(defender, 'incorporeal', None):
+					normal_add, crit_add = choice(incorporeal_die)
+				else:
+					normal_add, crit_add = choice(mage_wars_die)
 				normal += normal_add
 				crit += crit_add
 			adjusted = max(normal - max(defender.armor - attacker.piercing, 0),0)
@@ -45,4 +51,4 @@ def trial(creature1, creature2, num_trials=3000, alpha=0.10):
 	print(turn_sims[ceil(num_trials*(alpha/2))], "to", turn_sims[floor(num_trials*(1-alpha/2))])
 
 
-trial(Creature(1, 15, 4, 1), Creature(2, 36, 4, 0, 7))
+trial(Creature(1, 15, 4, 1), Creature(2, 36, 4, 0, 7, incorporeal=True))
