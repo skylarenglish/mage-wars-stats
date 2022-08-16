@@ -1,14 +1,16 @@
 from random import choice, randint
 from math import ceil, floor
 from copy import deepcopy
+import streamlit as st
 
 mage_wars_die = [(0,0), (0,0), (1,0), (2,0), (0,1), (0,2)]
 incorporeal_die = [(0,0),(0,0),(1,0),(0,0),(0,1),(0,0)]
+resilient_die = [(0,0),(0,0),(0,0),(0,0),(0,1),(0,2)]
 skylar_die = [(0,0),(1,0),(1,0),(2,0),(0,1),(0,1)]
 
 
 	
-# doublestrike, burn, rot,
+# doublestrike, burn, rot, will need to make attacks into a list
 class Creature():
 	def __init__(self, armor=0, health=1, attack_dice=1, piercing=0, defense=None, *args, **kwargs):
 		self.armor = armor
@@ -28,6 +30,8 @@ class Creature():
 			for _ in range(attacker.attack_dice):
 				if getattr(defender, 'incorporeal', None):
 					normal_add, crit_add = choice(incorporeal_die)
+				if getattr(defender, 'resilient', None):
+					normal_add, crit_add = choice(resilient_die)
 				else:
 					normal_add, crit_add = choice(mage_wars_die)
 				normal += normal_add
@@ -48,7 +52,7 @@ class Creature():
 def trial(creature1, creature2, num_trials=3000, alpha=0.10):
 	turn_sims = [deepcopy(creature1).attack_to_death(deepcopy(creature2)) for _ in range(num_trials)]
 	turn_sims.sort()
-	print(turn_sims[ceil(num_trials*(alpha/2))], "to", turn_sims[floor(num_trials*(1-alpha/2))])
+	return (turn_sims[ceil(num_trials*(alpha/2))], "to", turn_sims[floor(num_trials*(1-alpha/2))])
 
-
-trial(Creature(1, 15, 4, 1), Creature(2, 36, 4, 0, 7, incorporeal=True))
+st.write("Here's how many attacks it would take for creature 1 to kill creature 2")
+st.write(trial(Creature(1, 15, 4, 1), Creature(0, 10, 4, 0, incorporeal=True)))
