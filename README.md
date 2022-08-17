@@ -1,2 +1,2 @@
 # mage-wars-stats
-a collection of functions for Mage Wars
+a collection of functions and a streamlit app for Mage Wars
