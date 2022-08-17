@@ -51,13 +51,14 @@ class Creature():
 			#print(self, "did ", result, "to ", target, " turn ", turns)
 		return turns
 
-creatures = {'Werewolf': Creature(3, 15, 4, 1), 'Dwarf': Creature(1, 11, 3, 0)}
 
 def trial(creature1, creature2, num_trials=3000, alpha=0.10):
 	turn_sims = [deepcopy(creature1).attack_to_death(deepcopy(creature2)) for _ in range(num_trials)]
 	turn_sims.sort()
 	return (turn_sims[ceil(num_trials*(alpha/2))], turn_sims[floor(num_trials*(1-alpha/2))])
 
+
+creatures = {'Werewolf': Creature(3, 15, 4, 1), 'Dwarf': Creature(1, 11, 3, 0)}
 
 creature1_choice = st.selectbox('Attacking Creature',creatures.keys())
 creature2_choice = st.selectbox('Defending Creature',creatures.keys())
