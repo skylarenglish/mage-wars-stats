@@ -2,11 +2,14 @@ from random import choice, randint
 from math import ceil, floor
 from copy import deepcopy
 import streamlit as st
+import matplotlib.pyplot as plt
 
 mage_wars_die = [(0,0), (0,0), (1,0), (2,0), (0,1), (0,2)]
 incorporeal_die = [(0,0),(0,0),(1,0),(0,0),(0,1),(0,0)]
 resilient_die = [(0,0),(0,0),(0,0),(0,0),(0,1),(0,2)]
 skylar_die = [(0,0),(1,0),(1,0),(2,0),(0,1),(0,1)]
+
+default_free_variable_levels = {'armor': (0, 6), 'health': (1, 41), 'attack_dice': (1, 8), 'piercing': (0,6)}
 
 
 	
@@ -15,7 +18,7 @@ class Creature():
 	def __init__(self, armor=0, health=1, attack_dice=1, piercing=0, defense=None, *args, **kwargs):
 		self.armor = armor
 		self.health = health
-		self.attack_dice = attack_dice
+		self.attack_dice = max(attack_dice,1)
 		self.piercing = piercing
 		self.defense = defense
 		for key, value in kwargs.items():
@@ -48,11 +51,31 @@ class Creature():
 			#print(self, "did ", result, "to ", target, " turn ", turns)
 		return turns
 
+creatures = {'Werewolf': Creature(3, 15, 4, 1), 'Dwarf': Creature(1, 11, 3, 0)}
 
 def trial(creature1, creature2, num_trials=3000, alpha=0.10):
 	turn_sims = [deepcopy(creature1).attack_to_death(deepcopy(creature2)) for _ in range(num_trials)]
 	turn_sims.sort()
-	return (turn_sims[ceil(num_trials*(alpha/2))], "to", turn_sims[floor(num_trials*(1-alpha/2))])
+	return (turn_sims[ceil(num_trials*(alpha/2))], turn_sims[floor(num_trials*(1-alpha/2))])
 
-st.write("Here's how many attacks it would take for creature 1 to kill creature 2")
-st.write(trial(Creature(1, 15, 4, 1), Creature(0, 10, 4, 0, incorporeal=True)))
+
+creature1_choice = st.selectbox('Attacking Creature',creatures.keys())
+creature2_choice = st.selectbox('Defending Creature',creatures.keys())
+st.write("Here's how many attacks it would take for", creature1_choice, " to kill ", creature2_choice)
+st.write(trial(creatures[creature1_choice], creatures[creature2_choice]))
+free_variable = st.selectbox('What variable would you like to see change?', ['armor', 'health', 'attack_dice', 'piercing'])
+
+
+trials = []
+for i in range(default_free_variable_levels[free_variable][0], default_free_variable_levels[free_variable][1]):
+	creature1 = deepcopy(creatures[creature1_choice])
+	creature2 = deepcopy(creatures[creature2_choice])
+	setattr(creature1, free_variable, i)
+	setattr(creature2, free_variable, i)
+	trials.append(trial(creature1, creature2))
+
+fig, ax = plt.subplots()
+ax.plot([vars[0] for vars in trials])
+ax.plot([vars[1] for vars in trials])
+st.pyplot(fig)
+st.write(trials)
